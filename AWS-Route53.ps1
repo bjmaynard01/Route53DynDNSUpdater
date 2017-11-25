@@ -2,6 +2,8 @@
 $creds = Import-Csv "./accessKeys.csv"
 $AccessKeyID = $creds.AccessKeyId
 $AccessKeySecret = $creds.SecretKey
+#Set Error Action so that catching is possible
+$ErrorActionPreference = Stop
 
 #Conditionally import module
 if(!(Get-Module -Name AWSPowerShell)) {
@@ -9,13 +11,18 @@ if(!(Get-Module -Name AWSPowerShell)) {
         Import-Module AWSPowerShell
     }
     catch {
-
+        Write-EventLog -LogName "Route53" -Source "Route53 Updater" -EntryType Error -Message $_ -EventId 9
     }
 }
 
 #Setup Logging
-if((Get-EventLog -List) -notcontains "Route53") {
-    New-EventLog -LogName "Route53" -Source "Route53 Updater"
+if((Get-EventLog -List).Log -notcontains "Route53") {
+    try {
+        New-EventLog -LogName "Route53" -Source "Route53 Updater"
+    }
+    catch {
+        Write-EventLog -LogName "Route53" -Source "Route53 Updater" -EntryType Error -Message $_ -EventId 10
+    }
 }
 
 #Test for previously stored administrator credentials, and if not found, build them
@@ -28,16 +35,19 @@ $currentIP = (Invoke-RestMethod http://ipinfo.io/json).ip
 
 #Establish storage location to keep "old IP" for comparison
 $oldIPPath = "./oldIP.txt"
-$oldIP = Get-Content $oldIPPath
 
 #Test for existence of stateful file, and create if needed
 if(!(Test-Path $oldIPPath)) {
     New-Item -Path $oldIPPath
+    Write-EventLog -LogName "Route53" -Source "Route53 Updater" -EntryType Information -EventId 1 -Message "Creating text file to track IP address between runs."
 }
+
+$oldIP = Get-Content $oldIPPath 
 
 #If storage file empty, add current IP to it for comparison on next run
 if(!($oldIP)) {
     Add-Content $oldIPPath $currentIP
+    Write-EventLog -LogName "Route53" -Source "Route53 Updater" -EntryType Information -EventId 2 -Message "Updating IP address in text file to match new external IP."
 }
 
 if($currentIP -match $oldIP) {
@@ -58,7 +68,6 @@ else {
     foreach($Record in $Records) {
         $Name = $Record.Name
         $Value = ($Record.ResourceRecords).Value
-    
         Write-Host "$Name  ::  $Value"
     }
 
