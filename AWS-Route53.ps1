@@ -3,7 +3,7 @@ $creds = Import-Csv "./accessKeys.csv"
 $AccessKeyID = $creds.AccessKeyId
 $AccessKeySecret = $creds.SecretKey
 #Set Error Action so that catching is possible
-$ErrorActionPreference = Stop
+$ErrorActionPreference = "Stop"
 
 #Conditionally import module
 if(!(Get-Module -Name AWSPowerShell)) {
@@ -68,7 +68,10 @@ else {
     foreach($Record in $Records) {
         $Name = $Record.Name
         $Value = ($Record.ResourceRecords).Value
-        Write-Host "$Name  ::  $Value"
+        $Type = $Record.Type
+        if($Type -eq "A" -and $Value -like $oldIP) {
+            
+        }
     }
 
     #Change out "old IP" for "new IP" in file for comparison on future runs, and log the change
