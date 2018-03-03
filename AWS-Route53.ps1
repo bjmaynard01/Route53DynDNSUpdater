@@ -63,14 +63,19 @@ else {
     $ZoneId = ((Get-R53HostedZoneList -ProfileName administrator | Where-Object {$_.Name -eq "maynardfolks.com."}).Id).Substring(12)
 
     #Build record set from hosted zone selected previously
-    $Records = (Get-R53ResourceRecordSet -HostedZoneId $ZoneId -ProfileName administrator).ResourceRecordSets
+    $RecordSets = (Get-R53ResourceRecordSet -HostedZoneId $ZoneId -ProfileName administrator).ResourceRecordSets
 
-    foreach($Record in $Records) {
-        $Name = $Record.Name
-        $Value = ($Record.ResourceRecords).Value
+    foreach($Record in $RecordSets) {
+        $IP = ($Record.ResourceRecords).Value
         $Type = $Record.Type
-        if($Type -eq "A" -and $Value -like $oldIP) {
-            
+        $RecordName = $Record.Name
+        if($Type -eq "A" -and $IP -like $oldIP) {
+            $Change = New-Object Amazon.Route53.Model.Change
+            $Change.Action = "UPSERT"
+            $Change.ResourceRecordSet = $Record
+            $Change.ResourceRecordSet.Name = $Record.Name
+            $Change.ResourceRecordSet.ResourceRecords.Add(@{Value=$IP})
+            Write-EventLog -LogName Route53 -Source "Route53 Updater" -EntryType Information -EventID 1001 -Message "Updated Record: $RecordName to the new IP: $IP"
         }
     }
 
