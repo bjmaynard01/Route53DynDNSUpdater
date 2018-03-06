@@ -1,9 +1,11 @@
 Param (
-    
+    [parameter(Mandatory=$true)]$CSVPath,
+    [parameter(Mandatory=$true)]$ProfileName,
+    [parameter(Mandatory=$true)]$TargetDomain
 )
 
 #Build credentials
-$creds = Import-Csv "./accessKeys.csv"
+$creds = Import-Csv $CSVPath
 $AccessKeyID = $creds.'Access key ID'
 $AccessKeySecret = $creds.'Secret access key'
 #Set Error Action so that catching is possible
@@ -29,7 +31,7 @@ if((Get-EventLog -List).Log -notcontains "Route53") {
     }
 }
 
-Set-AWSCredentials -StoreAs r53api -AccessKey $AccessKeyID -SecretKey $AccessKeySecret
+Set-AWSCredentials -StoreAs $ProfileName -AccessKey $AccessKeyID -SecretKey $AccessKeySecret
 
 #Get current external ip from ipinfo.io
 $currentIP = (Invoke-RestMethod http://ipinfo.io/json).ip
@@ -59,12 +61,12 @@ if($currentIP -match $oldIP) {
 
 else {
     #Ip address has been changed, time to update the records in AWS...don't forget logging
-
+    $TargetDomain = $TargetDomain + "."
     #Get ZoneId dynamically from AWS instead of hard-coding
-    $ZoneId = ((Get-R53HostedZoneList -StoredCredentials r53api | Where-Object {$_.Name -eq "maynardfolks.com."}).Id).Substring(12)
+    $ZoneId = ((Get-R53HostedZoneList -StoredCredentials $ProfileName | Where-Object {$_.Name -eq "$TargetDomain"}).Id).Substring(12)
 
     #Build record set from hosted zone selected previously
-    $RecordSets = (Get-R53ResourceRecordSet -HostedZoneId $ZoneId -StoredCredentials r53api).ResourceRecordSets
+    $RecordSets = (Get-R53ResourceRecordSet -HostedZoneId $ZoneId -StoredCredentials $ProfileName).ResourceRecordSets
 
     foreach($Record in $RecordSets) {
         $IP = ($Record.ResourceRecords).Value
@@ -75,9 +77,9 @@ else {
             $Change.Action = "UPSERT"
             $Change.ResourceRecordSet = $Record
             $Change.ResourceRecordSet.Name = $Record.Name
-            $Change.ResourceRecordSet.ResourceRecords.Remove(@{Value=$oldIP})
+            $Change.ResourceRecordSet.ResourceRecords.Clear()
             $Change.ResourceRecordSet.ResourceRecords.Add(@{Value=$currentIP})
-            Edit-R53ResourceRecordSet -HostedZoneId $ZoneId -ChangeBatch_Comment "Updated from AWS-Route53.ps1" -ChangeBatch_Change $Change -StoredCredentials r53api
+            Edit-R53ResourceRecordSet -HostedZoneId $ZoneId -ChangeBatch_Comment "Updated from AWS-Route53.ps1" -ChangeBatch_Change $Change -StoredCredentials $ProfileName
             Write-EventLog -LogName Route53 -Source "Route53 Updater" -EntryType Warning -EventID 1001 -Message "Updated Record: $RecordName to the new IP: $currentIP"
         }
     }
