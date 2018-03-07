@@ -31,6 +31,6 @@ Path and name of text file to store/pull past IP information in.
 ### Usage
 From a powershell prompt in the location of the cloned repository, run the following command
 
-'''
+```
 AWS-Route53.ps1 -CSVPath C:\<wherever CSV file is>\<csvfilename>.csv -ProfileName <name of profile to store creds as> -TargetDomain "example.com" -IPFile C:\<path to txt file>\<file>.txt
-'''
+```
