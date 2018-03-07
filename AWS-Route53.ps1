@@ -1,7 +1,8 @@
 Param (
     [parameter(Mandatory=$true)]$CSVPath,
     [parameter(Mandatory=$true)]$ProfileName,
-    [parameter(Mandatory=$true)]$TargetDomain
+    [parameter(Mandatory=$true)]$TargetDomain,
+    [parameter(Mandatory=$true)]$IPFile
 )
 
 #Build credentials
@@ -37,7 +38,7 @@ Set-AWSCredentials -StoreAs $ProfileName -AccessKey $AccessKeyID -SecretKey $Acc
 $currentIP = (Invoke-RestMethod http://ipinfo.io/json).ip
 
 #Establish storage location to keep "old IP" for comparison
-$oldIPPath = "./oldIP.txt"
+$oldIPPath = $IPFile
 
 #Test for existence of stateful file, and create if needed
 if(!(Test-Path $oldIPPath)) {
@@ -45,7 +46,7 @@ if(!(Test-Path $oldIPPath)) {
     Write-EventLog -LogName "Route53" -Source "Route53 Updater" -EntryType Information -EventId 1 -Message "Creating text file to track IP address between runs."
 }
 
-$oldIP = Get-Content $oldIPPath 
+$oldIP = Get-Content $oldIPPath
 
 #If storage file empty, add current IP to it for comparison on next run
 if(!($oldIP)) {
