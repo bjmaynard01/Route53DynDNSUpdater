@@ -34,3 +34,14 @@ From a powershell prompt in the location of the cloned repository, run the follo
 ```
 AWS-Route53.ps1 -CSVPath C:\<wherever CSV file is>\<csvfilename>.csv -ProfileName <name of profile to store creds as> -TargetDomain "example.com" -IPFile C:\<path to txt file>\<file>.txt
 ```
+Example:
+```
+&"AWS-Route53.ps1" -CSVPath "C:\Users\Public\Route53\accessKeys.csv" -ProfileName "route53api" -TargetDomain "startrekfans.com" -IPFile "C:\Users\Public\Route53\oldIP.txt"
+```
+
+### Scheduled Task
+To run this as a scheduled task once you've successfully tested against your desired hosted zone, simply create a scheduled task in Windows. The "action" of the task should be as follows:
+```
+"Program/Script:" powershell.exe
+Add arguments: powershell.exe C:\Users\Public\Documents\Projects\PowerShell\Route53\AWS-Route53.ps1 -CSVPath C:\Users\Public\Documents\Projects\PowerShell\Route53\accessKeys.csv -ProfileName r53api -TargetDomain maynardfolks.com -IPFile C:\Users\Public\Documents\Projects\PowerShell\Route53\oldIP.txt
+```
