@@ -7,85 +7,30 @@ The intent of this project is to emulate Dynamic DNS updaters (such as DynDNS), 
 Install the AWS Tools and SDK for .Net (includes PowerShell module)
 Have an account and generate access keys for an account with permissions to modify resource record sets in Route53
 Pull keys from AWS and store in a CSV file somewhere to be used by the script
-Run/Modify AWS-Route53.ps1 from PowerShell with required parameters
+Run/Modify AWS-Route53.ps1 from PowerShell with required parameters. The first run must be completed with administrative permissions to setup event logs.
 
 ### Prerequisites
 
 PowerShell (v5.0)
 [AWS Tools for Windows](http://sdk-for-net.amazonwebservices.com/latest/AWSToolsAndSDKForNet.msi)
 
-```
-Give examples
-```
+### Parameters
 
-### Installing
+#### CSVPath
+Path to CSV file that contains key information for account to be used to update records in AWS.
 
-A step by step series of examples that tell you have to get a development env running
+#### ProfileName
+Name of profile to store credentials as for subsequent calls to AWS API.
 
-Say what the step will be
+#### TargetDomain
+Domain name of hosted zone being targeted, trailing dot "." added automatically.
 
-```
-Give the example
-```
+#### IPFile
+Path and name of text file to store/pull past IP information in.
 
-And repeat
+### Usage
+From a powershell prompt in the location of the cloned repository, run the following command
 
-```
-until finished
-```
-
-End with an example of getting some data out of the system or using it for a little demo
-
-## Running the tests
-
-Explain how to run the automated tests for this system
-
-### Break down into end to end tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-### And coding style tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-## Deployment
-
-Add additional notes about how to deploy this on a live system
-
-## Built With
-
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
-
-## Contributing
-
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
-
-## Versioning
-
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
-
-## Authors
-
-* **Billie Thompson** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
-
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
-
-## Acknowledgments
-
-* Hat tip to anyone who's code was used
-* Inspiration
-* etc
+'''
+AWS-Route53.ps1 -CSVPath C:\<wherever CSV file is>\<csvfilename>.csv -ProfileName <name of profile to store creds as> -TargetDomain "example.com" -IPFile C:\<path to txt file>\<file>.txt
+'''
